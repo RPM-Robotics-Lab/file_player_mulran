@@ -1,0 +1,30 @@
+<launch>
+    <arg name="driver" default="file_player"/>
+    <arg name="output" default="screen"/>
+    <node name="$(arg driver)" pkg="$(arg driver)" type="$(arg driver)" output="$(arg output)">
+    </node>
+
+    <arg name="camera" default="stereo"/>
+    <arg name="frame_id" default="$(arg camera)"/>
+    <arg name="proc" default="false"/>
+
+    <!-- Proc -->
+    <node if="$(arg proc)"
+        pkg="stereo_image_proc" type="stereo_image_proc"
+        name="stereo_image_proc" ns="$(arg camera)">
+        <param name="stereo_algorithm" value="0"/>
+	<param name="prefilter_size" value="255"/>
+	<param name="prefilter_cap" value="63"/>
+        <param name="correlation_window_size" value="11"/>
+        <param name="min_disparity" value="-67"/>
+        <param name="disparity_range" value="176"/>
+        <param name="uniqueness_ratio" value="3.0"/>
+        <param name="texture_threshold" value="148"/>
+        <param name="speckle_size" value="560"/>
+        <param name="speckle_range" value="19"/>
+        <param name="fullDP" value="true"/>
+        <param name="P1" value="0.0"/>
+        <param name="P2" value="3520.0"/>
+        <param name="fullDP" value="0"/>
+    </node>
+</launch>
