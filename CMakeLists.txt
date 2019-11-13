@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(file_player)
+project(file_player_mulran)
 
 add_definitions(-std=c++11)
 
@@ -37,9 +37,9 @@ find_package(Qt5Gui)
 find_package(Qt5OpenGL)
 
 
-add_message_files(
-  DIRECTORY msg
-)
+#add_message_files(
+#  DIRECTORY msg
+#)
 
 generate_messages(
    DEPENDENCIES
