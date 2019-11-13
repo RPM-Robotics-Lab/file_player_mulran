@@ -11,7 +11,10 @@ ROSThread::ROSThread(QObject *parent, QMutex *th_mutex)
   play_rate_ = 1.0;
   loop_flag_ = false;
   stop_skip_flag_ = true;
+
   radarpolar_active_ = true;
+  imu_active_ = false; // OFF in v1 (11/13/2019 released), giseop 
+
   search_bound_ = 10;
   reset_process_stamp_flag_ = false;
   auto_start_flag_ = true;
@@ -110,100 +113,104 @@ ROSThread::Ready()
   initial_data_stamp_ = data_stamp_.begin()->first - 1;
   last_data_stamp_ = prev(data_stamp_.end(),1)->first - 1;
 
+
   //Read IMU data
-  fp = fopen((data_folder_path_+"/sensor_data/xsens_imu.csv").c_str(),"r");
-  double q_x,q_y,q_z,q_w,x,y,z,g_x,g_y,g_z,a_x,a_y,a_z,m_x,m_y,m_z;
-  // irp_sen_msgs::imu imu_data_origin;
-  sensor_msgs::Imu imu_data;
-  sensor_msgs::MagneticField mag_data;
-  imu_data_.clear();
-  mag_data_.clear();
-
-  while(1)
+  if(imu_active_)
   {
-    int length = fscanf(fp,"%ld,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", \
-                            &stamp,&q_x,&q_y,&q_z,&q_w,&x,&y,&z,&g_x,&g_y,&g_z,&a_x,&a_y,&a_z,&m_x,&m_y,&m_z);
-    if(length != 8 && length != 17) 
-      break;
-    if(length == 8)
+    fp = fopen((data_folder_path_+"/sensor_data/xsens_imu.csv").c_str(),"r");
+    double q_x,q_y,q_z,q_w,x,y,z,g_x,g_y,g_z,a_x,a_y,a_z,m_x,m_y,m_z;
+    // irp_sen_msgs::imu imu_data_origin;
+    sensor_msgs::Imu imu_data;
+    sensor_msgs::MagneticField mag_data;
+    imu_data_.clear();
+    mag_data_.clear();
+
+    while(1)
     {
-      imu_data.header.stamp.fromNSec(stamp);
-      imu_data.header.frame_id = "imu";
-      imu_data.orientation.x = q_x;
-      imu_data.orientation.y = q_y;
-      imu_data.orientation.z = q_z;
-      imu_data.orientation.w = q_w;
+      int length = fscanf(fp,"%ld,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", \
+                              &stamp,&q_x,&q_y,&q_z,&q_w,&x,&y,&z,&g_x,&g_y,&g_z,&a_x,&a_y,&a_z,&m_x,&m_y,&m_z);
+      if(length != 8 && length != 17) 
+        break;
+      if(length == 8)
+      {
+        imu_data.header.stamp.fromNSec(stamp);
+        imu_data.header.frame_id = "imu";
+        imu_data.orientation.x = q_x;
+        imu_data.orientation.y = q_y;
+        imu_data.orientation.z = q_z;
+        imu_data.orientation.w = q_w;
 
-      imu_data_[stamp] = imu_data;
-      imu_data_version_ = 1;
+        imu_data_[stamp] = imu_data;
+        imu_data_version_ = 1;
 
-      // imu_data_origin.header.stamp.fromNSec(stamp);
-      // imu_data_origin.header.frame_id = "imu";
-      // imu_data_origin.quaternion_data.x = q_x;
-      // imu_data_origin.quaternion_data.y = q_y;
-      // imu_data_origin.quaternion_data.z = q_z;
-      // imu_data_origin.quaternion_data.w = q_w;
-      // imu_data_origin.eular_data.x = x;
-      // imu_data_origin.eular_data.y = y;
-      // imu_data_origin.eular_data.z = z;
-      // imu_data_origin_[stamp] = imu_data_origin;
+        // imu_data_origin.header.stamp.fromNSec(stamp);
+        // imu_data_origin.header.frame_id = "imu";
+        // imu_data_origin.quaternion_data.x = q_x;
+        // imu_data_origin.quaternion_data.y = q_y;
+        // imu_data_origin.quaternion_data.z = q_z;
+        // imu_data_origin.quaternion_data.w = q_w;
+        // imu_data_origin.eular_data.x = x;
+        // imu_data_origin.eular_data.y = y;
+        // imu_data_origin.eular_data.z = z;
+        // imu_data_origin_[stamp] = imu_data_origin;
+      }
+      else if(length == 17)
+      {
+        imu_data.header.stamp.fromNSec(stamp);
+        imu_data.header.frame_id = "imu";
+        imu_data.orientation.x = q_x;
+        imu_data.orientation.y = q_y;
+        imu_data.orientation.z = q_z;
+        imu_data.orientation.w = q_w;
+        imu_data.angular_velocity.x = g_x;
+        imu_data.angular_velocity.y = g_y;
+        imu_data.angular_velocity.z = g_z;
+        imu_data.linear_acceleration.x = a_x;
+        imu_data.linear_acceleration.y = a_y;
+        imu_data.linear_acceleration.z = a_z;
+
+        imu_data.orientation_covariance[0] = 3;
+        imu_data.orientation_covariance[4] = 3;
+        imu_data.orientation_covariance[8] = 3;
+        imu_data.angular_velocity_covariance[0] = 3;
+        imu_data.angular_velocity_covariance[4] = 3;
+        imu_data.angular_velocity_covariance[8] = 3;
+        imu_data.linear_acceleration_covariance[0] = 3;
+        imu_data.linear_acceleration_covariance[4] = 3;
+        imu_data.linear_acceleration_covariance[8] = 3;
+
+        imu_data_[stamp] = imu_data;
+
+        mag_data.magnetic_field.x = m_x;
+        mag_data.magnetic_field.y = m_y;
+        mag_data.magnetic_field.z = m_z;
+        mag_data_[stamp] = mag_data;
+        imu_data_version_ = 2;
+
+        // imu_data_origin.header.stamp.fromNSec(stamp);
+        // imu_data_origin.header.frame_id = "imu";
+        // imu_data_origin.quaternion_data.x = q_x;
+        // imu_data_origin.quaternion_data.y = q_y;
+        // imu_data_origin.quaternion_data.z = q_z;
+        // imu_data_origin.quaternion_data.w = q_w;
+        // imu_data_origin.eular_data.x = x;
+        // imu_data_origin.eular_data.y = y;
+        // imu_data_origin.eular_data.z = z;
+        // imu_data_origin.gyro_data.x = g_x;
+        // imu_data_origin.gyro_data.y = g_y;
+        // imu_data_origin.gyro_data.z = g_z;
+        // imu_data_origin.acceleration_data.x = a_x;
+        // imu_data_origin.acceleration_data.y = a_y;
+        // imu_data_origin.acceleration_data.z = a_z;
+        // imu_data_origin.magneticfield_data.x = m_x;
+        // imu_data_origin.magneticfield_data.y = m_y;
+        // imu_data_origin.magneticfield_data.z = m_z;
+        // imu_data_origin_[stamp] = imu_data_origin;
+      }
     }
-    else if(length == 17)
-    {
-      imu_data.header.stamp.fromNSec(stamp);
-      imu_data.header.frame_id = "imu";
-      imu_data.orientation.x = q_x;
-      imu_data.orientation.y = q_y;
-      imu_data.orientation.z = q_z;
-      imu_data.orientation.w = q_w;
-      imu_data.angular_velocity.x = g_x;
-      imu_data.angular_velocity.y = g_y;
-      imu_data.angular_velocity.z = g_z;
-      imu_data.linear_acceleration.x = a_x;
-      imu_data.linear_acceleration.y = a_y;
-      imu_data.linear_acceleration.z = a_z;
-
-      imu_data.orientation_covariance[0] = 3;
-      imu_data.orientation_covariance[4] = 3;
-      imu_data.orientation_covariance[8] = 3;
-      imu_data.angular_velocity_covariance[0] = 3;
-      imu_data.angular_velocity_covariance[4] = 3;
-      imu_data.angular_velocity_covariance[8] = 3;
-      imu_data.linear_acceleration_covariance[0] = 3;
-      imu_data.linear_acceleration_covariance[4] = 3;
-      imu_data.linear_acceleration_covariance[8] = 3;
-
-      imu_data_[stamp] = imu_data;
-
-      mag_data.magnetic_field.x = m_x;
-      mag_data.magnetic_field.y = m_y;
-      mag_data.magnetic_field.z = m_z;
-      mag_data_[stamp] = mag_data;
-      imu_data_version_ = 2;
-
-      // imu_data_origin.header.stamp.fromNSec(stamp);
-      // imu_data_origin.header.frame_id = "imu";
-      // imu_data_origin.quaternion_data.x = q_x;
-      // imu_data_origin.quaternion_data.y = q_y;
-      // imu_data_origin.quaternion_data.z = q_z;
-      // imu_data_origin.quaternion_data.w = q_w;
-      // imu_data_origin.eular_data.x = x;
-      // imu_data_origin.eular_data.y = y;
-      // imu_data_origin.eular_data.z = z;
-      // imu_data_origin.gyro_data.x = g_x;
-      // imu_data_origin.gyro_data.y = g_y;
-      // imu_data_origin.gyro_data.z = g_z;
-      // imu_data_origin.acceleration_data.x = a_x;
-      // imu_data_origin.acceleration_data.y = a_y;
-      // imu_data_origin.acceleration_data.z = a_z;
-      // imu_data_origin.magneticfield_data.x = m_x;
-      // imu_data_origin.magneticfield_data.y = m_y;
-      // imu_data_origin.magneticfield_data.z = m_z;
-      // imu_data_origin_[stamp] = imu_data_origin;
-    }
-  }
-  cout << "IMU data are loaded" << endl;
-  fclose(fp);
+    cout << "IMU data are loaded" << endl;
+    fclose(fp);
+  } // read IMU
 
   ouster_file_list_.clear();
   radarpolar_file_list_.clear();
@@ -278,7 +285,7 @@ ROSThread::DataStampThread()
     if(data_stamp_thread_.active_ == false) 
       return;
 
-    if(iter->second.compare("imu") == 0)
+    if(iter->second.compare("imu") == 0 && imu_active_ == true)
     {
       imu_thread_.push(stamp);
       imu_thread_.cv_.notify_all();

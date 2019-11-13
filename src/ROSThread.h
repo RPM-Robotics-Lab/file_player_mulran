@@ -120,6 +120,7 @@ private:
     int search_bound_;
 
     bool radarpolar_active_;
+    bool imu_active_;
 
     ros::Subscriber start_sub_;
     ros::Subscriber stop_sub_;
