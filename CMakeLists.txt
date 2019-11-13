@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(file_player_mulran)
+project(file_player)
 
 add_definitions(-std=c++11)
 
@@ -35,7 +35,6 @@ find_package(Eigen REQUIRED)
 find_package(Qt5Widgets)
 find_package(Qt5Gui)
 find_package(Qt5OpenGL)
-
 
 #add_message_files(
 #  DIRECTORY msg
@@ -75,7 +74,6 @@ catkin_package(
     Eigen
 )
 
-
 set (SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set (File_Player_QTLib_src ${SRC_DIR}/mainwindow.cpp ${SRC_DIR}/ROSThread.cpp)
@@ -83,11 +81,8 @@ set (File_Player_QTLib_hdr ${SRC_DIR}/mainwindow.h ${SRC_DIR}/ROSThread.h)
 set (File_Player_QTLib_ui  ${SRC_DIR}/mainwindow.ui)
 set (File_Player_QTBin_src ${SRC_DIR}/main.cpp)
 
-
-
 #find_package(GLEW REQUIRED)
 #find_package(GLUT REQUIRED)
-
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -105,19 +100,15 @@ qt5_wrap_ui (File_Player_QTLib_ui_moc  ${File_Player_QTLib_ui})
 qt5_add_resources(SHADER_RSC_ADDED ${SRC_DIR}/resources.qrc)
 
 
-
 ###########
 ## Build ##
 ###########
-
-
 add_executable(file_player ${File_Player_QTLib_src} ${File_Player_QTLib_hdr} ${File_Player_QTBin_src} ${SHADER_RSC_ADDED} ${File_Player_QTLib_ui_moc})     
 
 add_dependencies(file_player file_player_msgs_generate_messages_cpp ${PROJECT_NAME}_gencfg)
 add_dependencies(file_player ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(file_player
-
   ${catkin_LIBRARIES}
   ${QT_LIBRARIES} 
   ${OPENGL_LIBRARIES}

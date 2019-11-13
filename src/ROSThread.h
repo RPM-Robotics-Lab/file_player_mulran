@@ -50,7 +50,7 @@
 #include <tf/transform_datatypes.h>
 
 #include <dynamic_reconfigure/server.h>
-#include <file_player/dynamic_file_playerConfig.h>
+// #include <file_player/dynamic_file_playerConfig.h>
 #include <Eigen/Dense>
 #include <thread>
 #include <mutex>
