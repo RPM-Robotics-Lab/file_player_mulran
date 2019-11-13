@@ -21,7 +21,7 @@ find_package(catkin REQUIRED cmake_modules
   pcl_ros
   pcl_conversions
   pcl_msgs
-  irp_sen_msgs
+#  irp_sen_msgs
   camera_info_manager
   tf
 )
@@ -67,7 +67,7 @@ catkin_package(
     pcl_ros
     pcl_conversions  
     pcl_msgs
-    irp_sen_msgs
+#    irp_sen_msgs
     camera_info_manager
     tf
 

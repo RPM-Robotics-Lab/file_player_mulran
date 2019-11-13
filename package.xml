@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package>
   <name>file_player</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>file player</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="jjy0923@kaist.ac.kr">jjy0923</maintainer>
+  <maintainer email="paulgkim@kaist.ac.kr">paulgkim</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -23,7 +23,7 @@
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
   <!-- Authors do not have to be maintianers, but could be -->
   <!-- Example: -->
-  <author email="jjy0923@kaist.ac.kr">Jinyong Jeong</author> -->
+  <author email="paulgkim@kaist.ac.kr">Giseop Kim</author> -->
 
   <!-- The *_depend tags are used to specify dependencies -->
   <!-- Dependencies can be catkin packages or system dependencies -->
@@ -49,7 +49,7 @@
   <build_depend>pcl_ros</build_depend>
   <build_depend>pcl_conversions</build_depend>
   <build_depend>pcl_msgs</build_depend>
-  <build_depend>irp_sen_msgs</build_depend>
+  <!-- <build_depend>irp_sen_msgs</build_depend> -->
   <build_depend>cmake_modules</build_depend>
   <build_depend>camera_info_manager</build_depend>
   <build_depend>tf</build_depend>
@@ -66,7 +66,7 @@
   <run_depend>pcl_ros</run_depend>
   <run_depend>pcl_conversions</run_depend>
   <run_depend>pcl_msgs</run_depend>
-  <run_depend>irp_sen_msgs</run_depend>
+  <!-- <run_depend>irp_sen_msgs</run_depend> -->
   <run_depend>cmake_modules</run_depend>
   <run_depend>camera_info_manager</run_depend>
   <run_depend>tf</run_depend>
