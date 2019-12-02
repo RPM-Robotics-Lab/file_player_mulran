@@ -54,6 +54,7 @@ ROSThread::ros_initialize(ros::NodeHandle &n)
   start_sub_  = nh_.subscribe<std_msgs::Bool>("/file_player_start", 1, boost::bind(&ROSThread::FilePlayerStart, this, _1));
   stop_sub_   = nh_.subscribe<std_msgs::Bool>("/file_player_stop", 1, boost::bind(&ROSThread::FilePlayerStop, this, _1));
 
+  clock_pub_ = nh_.advertise<rosgraph_msgs::Clock>("/clock", 1);
   imu_pub_ = nh_.advertise<sensor_msgs::Imu>("/imu/data_raw", 1000);
   ouster_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/os1_points", 1000); // giseop
   radarpolar_pub_ = nh_.advertise<sensor_msgs::Image>("/radar/polar", 10); // giseop
@@ -324,6 +325,10 @@ ROSThread::DataStampThread()
             usleep(10000);
         }
     }
+    rosgraph_msgs::Clock clock;
+    clock.clock.fromNSec(stamp);
+    clock_pub_.publish(clock);
+    ros::WallDuration(0.001 / play_rate_).sleep();
 
   }
   cout << "Data publish complete" << endl;

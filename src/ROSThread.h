@@ -29,6 +29,8 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/LaserScan.h>
 
+#include <rosgraph_msgs/Clock.h>
+
 
 #include <camera_info_manager/camera_info_manager.h>
 #include <std_msgs/String.h>
@@ -130,6 +132,7 @@ private:
     ros::Publisher magnet_pub_;
     ros::Publisher ouster_pub_;
     ros::Publisher radarpolar_pub_;
+    ros::Publisher clock_pub_;
 
     multimap<int64_t, string>                    data_stamp_;
     // map<int64_t, irp_sen_msgs::imu>         imu_data_origin_;
