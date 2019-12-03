@@ -379,6 +379,7 @@ ROSThread::TimerCallback(const ros::TimerEvent&)
 
     if(play_flag_ == false){
       processed_stamp_ = 0; //reset
+      prev_clock_stamp_ = 0;
     }
 }
 
