@@ -134,6 +134,8 @@ private:
     ros::Publisher radarpolar_pub_;
     ros::Publisher clock_pub_;
 
+    int64_t prev_clock_stamp_;
+
     multimap<int64_t, string>                    data_stamp_;
     // map<int64_t, irp_sen_msgs::imu>         imu_data_origin_;
     map<int64_t, sensor_msgs::Imu>         imu_data_;

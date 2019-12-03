@@ -20,6 +20,7 @@ ROSThread::ROSThread(QObject *parent, QMutex *th_mutex)
   auto_start_flag_ = true;
   stamp_show_count_ = 0;
   imu_data_version_ = 0;
+  prev_clock_stamp_ = 0;
 }
 
 
@@ -308,11 +309,12 @@ ROSThread::DataStampThread()
       emit StampShow(stamp);
     }
 
-    rosgraph_msgs::Clock clock;
-    clock.clock.fromNSec(stamp);
-    clock_pub_.publish(clock);
-    //ros::WallDuration(0.001 / play_rate_).sleep();
-
+    if(prev_clock_stamp_ == 0 || (stamp - prev_clock_stamp_) > 10000000){
+        rosgraph_msgs::Clock clock;
+        clock.clock.fromNSec(stamp);
+        clock_pub_.publish(clock);
+        prev_clock_stamp_ = stamp;
+    }
 
     if(loop_flag_ == true && iter == prev(data_stamp_.end(),1))
     {
