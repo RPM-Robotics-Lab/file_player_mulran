@@ -1,4 +1,4 @@
-# File player for MulRan data set
+# File player for MulRan dataset
 
 Maintainer: Giseop Kim (paulgkim@kaist.ac.kr)
 
@@ -8,6 +8,7 @@ This program is a file player for the [MulRan dataset](https://sites.google.com/
 ## Updates (2020. 11. 19)
 
 - We released IMU and GPS data (consumer-level), as well as the originally delivered LiDAR and radar data. 
+  - The model specification and the extrinsic calibration (i.e., the sensor position within our car platform) is equivalent to our lab's other dataset ([Complex Urban Dataset, IJRR 19](https://irap.kaist.ac.kr/dataset/)), so please refer the paper. 
 - We expect these data supports [GPS-aided radar researches](https://arxiv.org/pdf/2006.02108.pdf), LiDAR-IMU fusion such as [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) ([example video](https://youtu.be/Y6DXlC34qlc?t=479)), or radar-imu fusion.
 
 ## How to use 
@@ -24,5 +25,6 @@ $ roslaunch file_player file_player.launch
 
 
 ## Contributors
+- Jinyong Jeong: The original author
 - Minwoo Jung: made the player system compatible with LIO-SAM input (i.e., supports ring information of a lidar scan)
  
