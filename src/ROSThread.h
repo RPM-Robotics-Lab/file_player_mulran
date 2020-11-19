@@ -128,6 +128,7 @@ private:
     ros::Subscriber stop_sub_;
 
     // ros::Publisher imu_origin_pub_;
+    ros::Publisher gps_pub_;
     ros::Publisher imu_pub_;
     ros::Publisher magnet_pub_;
     ros::Publisher ouster_pub_;
@@ -137,11 +138,13 @@ private:
     int64_t prev_clock_stamp_;
 
     multimap<int64_t, string>                    data_stamp_;
-    // map<int64_t, irp_sen_msgs::imu>         imu_data_origin_;
+    map<int64_t, sensor_msgs::NavSatFix>    gps_data_;
     map<int64_t, sensor_msgs::Imu>         imu_data_;
+    // map<int64_t, irp_sen_msgs::imu>         imu_data_origin_;
     map<int64_t, sensor_msgs::MagneticField>         mag_data_;
 
     DataThread<int64_t> data_stamp_thread_;
+    DataThread<int64_t> gps_thread_;
     DataThread<int64_t> imu_thread_;
     DataThread<int64_t> radarpolar_thread_; 
     DataThread<int64_t> ouster_thread_;
@@ -149,6 +152,7 @@ private:
     map<int64_t, int64_t> stop_period_; //start and stop stamp
 
     void DataStampThread();
+    void GpsThread();
     void ImuThread();
     void OusterThread(); // giseop
     void RadarpolarThread(); 

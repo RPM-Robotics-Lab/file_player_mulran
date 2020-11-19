@@ -4,6 +4,21 @@
 
 using namespace std;
 
+struct PointXYZIRT {
+     PCL_ADD_POINT4D;
+     float intensity;
+     uint32_t t;
+     int ring;
+
+     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ }EIGEN_ALIGN16;
+
+ POINT_CLOUD_REGISTER_POINT_STRUCT (PointXYZIRT,
+     (float, x, x) (float, y, y) (float, z, z) (float, intensity, intensity)
+     (uint32_t, t, t) (int, ring, ring)
+ )
+
+
 ROSThread::ROSThread(QObject *parent, QMutex *th_mutex)
 :QThread(parent), mutex_(th_mutex)
 {
@@ -13,7 +28,7 @@ ROSThread::ROSThread(QObject *parent, QMutex *th_mutex)
   stop_skip_flag_ = true;
 
   radarpolar_active_ = true;
-  imu_active_ = false; // OFF in v1 (11/13/2019 released), giseop 
+  imu_active_ = true ;// OFF in v1 (11/13/2019 released), giseop 
 
   search_bound_ = 10;
   reset_process_stamp_flag_ = false;
@@ -27,6 +42,7 @@ ROSThread::ROSThread(QObject *parent, QMutex *th_mutex)
 ROSThread::~ROSThread()
 {
   data_stamp_thread_.active_ = false;
+  gps_thread_.active_ = false;
   imu_thread_.active_ = false;
   ouster_thread_.active_ = false;
   radarpolar_thread_.active_ = false;
@@ -35,6 +51,8 @@ ROSThread::~ROSThread()
 
   data_stamp_thread_.cv_.notify_all();
   if(data_stamp_thread_.thread_.joinable())  data_stamp_thread_.thread_.join();
+  gps_thread_.cv_.notify_all();
+  if(gps_thread_.thread_.joinable()) gps_thread_.thread_.join();
   imu_thread_.cv_.notify_all();
   if(imu_thread_.thread_.joinable()) imu_thread_.thread_.join();
   ouster_thread_.cv_.notify_all(); // giseop
@@ -56,6 +74,7 @@ ROSThread::ros_initialize(ros::NodeHandle &n)
   stop_sub_   = nh_.subscribe<std_msgs::Bool>("/file_player_stop", 1, boost::bind(&ROSThread::FilePlayerStop, this, _1));
 
   clock_pub_ = nh_.advertise<rosgraph_msgs::Clock>("/clock", 1);
+  gps_pub_ = nh_.advertise<sensor_msgs::NavSatFix>("/gps/fix", 1000);
   imu_pub_ = nh_.advertise<sensor_msgs::Imu>("/imu/data_raw", 1000);
   ouster_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/os1_points", 1000); // giseop
   radarpolar_pub_ = nh_.advertise<sensor_msgs::Image>("/radar/polar", 10); // giseop
@@ -77,6 +96,10 @@ ROSThread::Ready()
   data_stamp_thread_.active_ = false;
   data_stamp_thread_.cv_.notify_all();
   if(data_stamp_thread_.thread_.joinable())  data_stamp_thread_.thread_.join();
+
+  gps_thread_.active_ = false;
+  gps_thread_.cv_.notify_all();
+  if(gps_thread_.thread_.joinable()) gps_thread_.thread_.join();
 
   imu_thread_.active_ = false;
   imu_thread_.cv_.notify_all();
@@ -116,6 +139,28 @@ ROSThread::Ready()
   last_data_stamp_ = prev(data_stamp_.end(),1)->first - 1;
 
 
+  //Read gps data
+  fp = fopen((data_folder_path_+"/sensor_data/gps.csv").c_str(),"r");
+  double latitude, longitude, altitude, altitude_orthometric;
+  double cov[9];
+  sensor_msgs::NavSatFix gps_data;
+  gps_data_.clear();
+  while( fscanf(fp,"%ld,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n",
+                &stamp,&latitude,&longitude,&altitude,&cov[0],&cov[1],&cov[2],&cov[3],&cov[4],&cov[5],&cov[6],&cov[7],&cov[8]) 
+                == 13
+        )
+  {
+    gps_data.header.stamp.fromNSec(stamp);
+    gps_data.header.frame_id = "gps";
+    gps_data.latitude = latitude;
+    gps_data.longitude = longitude;
+    gps_data.altitude = altitude;
+    for(int i = 0 ; i < 9 ; i ++) gps_data.position_covariance[i] = cov[i];
+    gps_data_[stamp] = gps_data;
+  }
+  cout << "Gps data are loaded" << endl;
+  fclose(fp);
+
   //Read IMU data
   if(imu_active_)
   {
@@ -126,7 +171,7 @@ ROSThread::Ready()
     sensor_msgs::MagneticField mag_data;
     imu_data_.clear();
     mag_data_.clear();
-
+    // cout << imu_data << endl ;
     while(1)
     {
       int length = fscanf(fp,"%ld,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", \
@@ -221,11 +266,13 @@ ROSThread::Ready()
   GetDirList(data_folder_path_ + "/sensor_data/radar/polar", radarpolar_file_list_);
 
   data_stamp_thread_.active_ = true;
+  gps_thread_.active_ = true;
   imu_thread_.active_ = true;
   ouster_thread_.active_ = true;
   radarpolar_thread_.active_ = true;
 
   data_stamp_thread_.thread_ = std::thread(&ROSThread::DataStampThread,this);
+  gps_thread_.thread_ = std::thread(&ROSThread::GpsThread,this);
   imu_thread_.thread_ = std::thread(&ROSThread::ImuThread,this);
   ouster_thread_.thread_ = std::thread(&ROSThread::OusterThread,this);
   radarpolar_thread_.thread_ = std::thread(&ROSThread::RadarpolarThread,this);
@@ -292,6 +339,11 @@ ROSThread::DataStampThread()
       imu_thread_.push(stamp);
       imu_thread_.cv_.notify_all();
     }
+    else if(iter->second.compare("gps") == 0)
+    {
+      gps_thread_.push(stamp);
+      gps_thread_.cv_.notify_all();
+    }
     else if(iter->second.compare("ouster") == 0)
     {
         ouster_thread_.push(stamp);
@@ -337,6 +389,27 @@ ROSThread::DataStampThread()
 
   }
   cout << "Data publish complete" << endl;
+}
+
+
+void ROSThread::GpsThread()
+{
+  while(1){
+    std::unique_lock<std::mutex> ul(gps_thread_.mutex_);
+    gps_thread_.cv_.wait(ul);
+    if(gps_thread_.active_ == false) return;
+    ul.unlock();
+
+    while(!gps_thread_.data_queue_.empty()){
+      auto data = gps_thread_.pop();
+      //process
+      if(gps_data_.find(data) != gps_data_.end()){
+        gps_pub_.publish(gps_data_[data]);
+      }
+
+    }
+    if(gps_thread_.active_ == false) return;
+  }
 }
 
 
@@ -412,7 +485,7 @@ ROSThread::OusterThread()
       else
       {
         //load current data
-        pcl::PointCloud<pcl::PointXYZI> cloud;
+        pcl::PointCloud<PointXYZIRT> cloud;
         cloud.clear();
         sensor_msgs::PointCloud2 publish_cloud;
         string current_file_name = data_folder_path_ + "/sensor_data/Ouster" +"/"+ to_string(data) + ".bin";
@@ -421,13 +494,16 @@ ROSThread::OusterThread()
         {
             ifstream file;
             file.open(current_file_name, ios::in|ios::binary);
+            int k = 0;
             while(!file.eof())
             {
-                pcl::PointXYZI point;
+                PointXYZIRT point;
                 file.read(reinterpret_cast<char *>(&point.x), sizeof(float));
                 file.read(reinterpret_cast<char *>(&point.y), sizeof(float));
                 file.read(reinterpret_cast<char *>(&point.z), sizeof(float));
                 file.read(reinterpret_cast<char *>(&point.intensity), sizeof(float));
+                point.ring = (k%64) + 1 ;
+                k = k+1 ;
                 cloud.points.push_back (point);
             }
             file.close();
@@ -441,7 +517,7 @@ ROSThread::OusterThread()
       }
 
       //load next data
-      pcl::PointCloud<pcl::PointXYZI> cloud;
+      pcl::PointCloud<PointXYZIRT> cloud;
       cloud.clear();
       sensor_msgs::PointCloud2 publish_cloud;
       current_file_index = find(next(ouster_file_list_.begin(),max(0,previous_file_index-search_bound_)),ouster_file_list_.end(),to_string(data)+".bin") - ouster_file_list_.begin();
@@ -450,14 +526,18 @@ ROSThread::OusterThread()
 
           ifstream file;
           file.open(next_file_name, ios::in|ios::binary);
+          int k = 0;
           while(!file.eof()){
-              pcl::PointXYZI point;
-              file.read(reinterpret_cast<char *>(&point.x), sizeof(float));
-              file.read(reinterpret_cast<char *>(&point.y), sizeof(float));
-              file.read(reinterpret_cast<char *>(&point.z), sizeof(float));
-              file.read(reinterpret_cast<char *>(&point.intensity), sizeof(float));
+              PointXYZIRT point;
+                file.read(reinterpret_cast<char *>(&point.x), sizeof(float));
+                file.read(reinterpret_cast<char *>(&point.y), sizeof(float));
+                file.read(reinterpret_cast<char *>(&point.z), sizeof(float));
+                file.read(reinterpret_cast<char *>(&point.intensity), sizeof(float));
+                point.ring = (k%64) + 1 ;
+                k = k+1 ;
               cloud.points.push_back (point);
           }
+          
           file.close();
           pcl::toROSMsg(cloud, publish_cloud);
           ouster_next_ = make_pair(ouster_file_list_[current_file_index+1], publish_cloud);
