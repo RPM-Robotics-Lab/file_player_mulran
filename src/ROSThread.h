@@ -77,6 +77,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <rosbag/bag.h>
+#include <sstream>
+#include "tf2/LinearMath/Matrix3x3.h"
+#include "tf2/LinearMath/Transform.h"
+#include "csetjmp"
+#include "eigen_conversions/eigen_msg.h"
 
 using namespace std;
 using namespace cv;
@@ -110,6 +116,7 @@ public:
 
     int imu_data_version_;
 
+    void SaveRosbag();
     void Ready();
     void ResetProcessStamp(int position);
 
@@ -123,6 +130,7 @@ private:
 
     bool radarpolar_active_;
     bool imu_active_;
+
 
     ros::Subscriber start_sub_;
     ros::Subscriber stop_sub_;
@@ -160,8 +168,8 @@ private:
     void FilePlayerStart(const std_msgs::BoolConstPtr& msg);
     void FilePlayerStop(const std_msgs::BoolConstPtr& msg);
 
-    vector<string> ouster_file_list_;
-    vector<string> radarpolar_file_list_;
+    std::vector<string> ouster_file_list_;
+    std::vector<string> radarpolar_file_list_;
 
     ros::Timer timer_;
     void TimerCallback(const ros::TimerEvent&);

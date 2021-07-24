@@ -24,6 +24,7 @@ find_package(catkin REQUIRED cmake_modules
 #  irp_sen_msgs
   camera_info_manager
   tf
+  eigen_conversions
 )
 set(CMAKE_AUTOMOC ON)
 
@@ -66,6 +67,7 @@ catkin_package(
     pcl_ros
     pcl_conversions  
     pcl_msgs
+    eigen_conversions
 #    irp_sen_msgs
     camera_info_manager
     tf
