@@ -704,8 +704,9 @@ ROSThread::ResetProcessStamp(int position)
 void ROSThread::SaveRosbag()
 {
   rosbag::Bag bag;
+  const std::string bag_path = data_folder_path_+"/output.bag";
   bag.open(data_folder_path_+"/output.bag", rosbag::bagmode::Write);
-  cout<<"open bag"<<endl;
+  cout<<"Storing bag to: "<<bag_path<<endl;
 
 
   GetDirList(data_folder_path_ + "/sensor_data/radar/polar", radarpolar_file_list_);
@@ -715,12 +716,13 @@ void ROSThread::SaveRosbag()
 
 
   cout<<"Found: "<<radarpolar_file_list_.size()<<" radar sweeps"<<endl;
-  int count = 0;
+  int count = 1;
   for(auto && file_name : radarpolar_file_list_){
 
     cv::Mat radarpolar_image;
     const std::string file_path = data_folder_path_ + "/sensor_data/radar/polar/" + file_name;
-    cout<<"load ("<<count++<<"/"<<radarpolar_file_list_.size()<<") from: "<<file_path<<endl;
+    cout<<"radar: "<<count++<<"/"<<radarpolar_file_list_.size()<<endl;
+    //cout<<"load ("<<count++<<"/"<<radarpolar_file_list_.size()<<") from: "<<file_path<<endl;
     radarpolar_image = imread(file_path, 0);
 
     size_t lastindex = file_name.find_last_of(".");
@@ -777,6 +779,6 @@ void ROSThread::SaveRosbag()
       //cout<<"Written: "<<count++<<" /gt nav_msgs/odometry poses to /gt"<<endl;
     }
   }
-  cout<<"Rosbag saved"<<endl;
+  cout<<"rosbag stored at: "<<bag_path<<endl;
   bag.close();
 }
