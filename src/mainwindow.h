@@ -52,6 +52,7 @@ private slots:
   void TryClose();
   void FilePathSet();
   void Play();
+  void SaveBag();
   void Pause();
   void PlaySpeedChange(double value);
   void LoopFlagChange(int value);

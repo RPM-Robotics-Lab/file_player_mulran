@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui_->pushButton, SIGNAL(pressed()), this, SLOT(FilePathSet()));
   connect(ui_->pushButton_2, SIGNAL(pressed()), this, SLOT(Play()));
   connect(ui_->pushButton_3, SIGNAL(pressed()), this, SLOT(Pause()));
+  connect(ui_->pushButton_4, SIGNAL(pressed()), this, SLOT(SaveBag()));
 
   connect(ui_->doubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(PlaySpeedChange(double)));
   ui_->doubleSpinBox->setRange(0.01,20.0);
@@ -143,6 +144,15 @@ void MainWindow::Pause()
     my_ros_->pause_flag_ = false;
     this->ui_->pushButton_3->setText(QString::fromStdString("Pause"));
   }
+}
+void MainWindow::SaveBag()
+{
+  cout<<"new buttonpress"<<endl;
+  this->ui_->pushButton_4->setText(QString::fromStdString("converting"));
+  my_ros_->SaveRosbag();
+  this->ui_->pushButton_4->setText(QString::fromStdString("finished..."));
+
+
 }
 
 
