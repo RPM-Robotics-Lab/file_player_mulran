@@ -25,10 +25,12 @@ find_package(catkin REQUIRED cmake_modules
   camera_info_manager
   tf
   eigen_conversions
+  tf_conversions
 )
 set(CMAKE_AUTOMOC ON)
 
 find_package(Eigen REQUIRED)
+#find_package(PCL /usr/lib/x86_64-linux-gnu/cmake)
 
 #set (CMAKE_PREFIX_PATH /opt/Qt5.6.1/5.6/gcc_64/lib/cmake)
 
@@ -68,6 +70,7 @@ catkin_package(
     pcl_conversions  
     pcl_msgs
     eigen_conversions
+    tf_conversions
 #    irp_sen_msgs
     camera_info_manager
     tf
