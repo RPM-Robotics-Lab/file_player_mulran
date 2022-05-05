@@ -36,6 +36,9 @@ ROSThread::ROSThread(QObject *parent, QMutex *th_mutex)
   stamp_show_count_ = 0;
   imu_data_version_ = 0;
   prev_clock_stamp_ = 0;
+  Tbase2lidar = vectorToAffine3d({1.7042, -0.021, 1.8047, 0.0001*M_PI/180.0, 0.0003*M_PI/180.0, 179.6654*M_PI/180.0 });
+
+  Tbase2radar = vectorToAffine3d({1.50, -0.04, 1.97, 0.0000*M_PI/180.0, 0.0000*M_PI/180.0, 0.9*M_PI/180.0 });
 }
 
 
@@ -60,6 +63,7 @@ ROSThread::~ROSThread()
   if(ouster_thread_.thread_.joinable()) ouster_thread_.thread_.join();
   radarpolar_thread_.cv_.notify_all(); // giseop
   if(radarpolar_thread_.thread_.joinable()) radarpolar_thread_.thread_.join();
+
 
 }
 
@@ -114,6 +118,9 @@ ROSThread::Ready()
   radarpolar_thread_.active_ = false; // giseop
   radarpolar_thread_.cv_.notify_all();
   if(radarpolar_thread_.thread_.joinable()) radarpolar_thread_.thread_.join();
+
+
+
 
   //check path is right or not
   ifstream f((data_folder_path_+"/sensor_data/data_stamp.csv").c_str());
@@ -275,6 +282,7 @@ ROSThread::Ready()
   imu_thread_.active_ = true;
   ouster_thread_.active_ = true;
   radarpolar_thread_.active_ = true;
+
 
   data_stamp_thread_.thread_ = std::thread(&ROSThread::DataStampThread,this);
   gps_thread_.thread_ = std::thread(&ROSThread::GpsThread,this);
@@ -699,16 +707,63 @@ ROSThread::ResetProcessStamp(int position)
   }
 }
 
+geometry_msgs::TransformStamped ROSThread::EigToGeomStamped(const Eigen::Affine3d& T, const ros::Time& t, const std::string& parent, const std::string& child){
+  geometry_msgs::TransformStamped Tstamped;
+  tf::Transform tf_T;
+  tf::poseEigenToTF(T, tf_T);
+  tf::transformStampedTFToMsg(tf::StampedTransform(tf_T, t, parent, child), Tstamped);
+  return Tstamped;
+}
 
-
-void ROSThread::SaveRosbag()
+void
+ROSThread::SaveOuster(rosbag::Bag &bag)
 {
-  rosbag::Bag bag;
-  const std::string bag_path = data_folder_path_+"/output.bag";
-  bag.open(data_folder_path_+"/output.bag", rosbag::bagmode::Write);
-  cout<<"Storing bag to: "<<bag_path<<endl;
+
+  int count = 0;
+  //Store Ouster data
+  GetDirList(data_folder_path_ + "/sensor_data/Ouster", ouster_file_list_);
+
+  for(auto && data_filending : ouster_file_list_){
+    std::string data = data_filending.substr(0, data_filending.size()-4);
+
+    pcl::PointCloud<PointXYZIRT> cloud;
+    cloud.clear();
+    sensor_msgs::PointCloud2 publish_cloud;
+
+    string current_file_name = data_folder_path_ + "/sensor_data/Ouster" +"/"+ data + ".bin";
+    std::cout << data << std::endl;
+    uint64 u_data = stol(data);
+    std::cout << "data: " << u_data << std::endl;
+    std::cout <<  current_file_name << std::endl;
+    ifstream file;
+    file.open(current_file_name, ios::in|ios::binary);
+    int k = 0;
+    while(!file.eof())
+    {
+      PointXYZIRT point;
+      file.read(reinterpret_cast<char *>(&point.x), sizeof(float));
+      file.read(reinterpret_cast<char *>(&point.y), sizeof(float));
+      file.read(reinterpret_cast<char *>(&point.z), sizeof(float));
+      file.read(reinterpret_cast<char *>(&point.intensity), sizeof(float));
+      point.ring = (k%64) + 1 ;
+      k = k+1 ;
+      cloud.points.push_back (point);
+    }
+    file.close();
+
+    pcl::toROSMsg(cloud, publish_cloud);
+    publish_cloud.header.stamp.fromNSec(u_data);
+    publish_cloud.header.frame_id = "ouster";
+    bag.write("/os1_points", publish_cloud.header.stamp, publish_cloud);
+    cout<<"Written: "<<++count<<"/"<<ouster_file_list_.size() <<" /os1_points"<<endl;
+
+  }
+}
+void
+ROSThread::SaveRadar(rosbag::Bag &bag){
 
 
+  //Store Navtech
   GetDirList(data_folder_path_ + "/sensor_data/radar/polar", radarpolar_file_list_);
 
   int current_img_index = 0;
@@ -738,8 +793,12 @@ void ROSThread::SaveRosbag()
     auto msg = radarpolar_out_msg.toImageMsg();
     bag.write("/Navtech/Polar", msg->header.stamp, *msg);
   }
-  ////////////////////// OPEN GROUND TRUTH FILE /////////////////////
+}
 
+void
+ROSThread::SaveGT(rosbag::Bag &bag){
+
+  ////////////////////// OPEN GROUND TRUTH FILE /////////////////////
   const std::string gt_csv_path = data_folder_path_+ std::string("/global_pose.csv");
   fstream fin;
   fin.open(gt_csv_path, ios::in);
@@ -762,8 +821,10 @@ void ROSThread::SaveRosbag()
         row.push_back(str);
       if(row.size()!=13)
         break;
-      int64_t stamp_int;
-      std::istringstream ( row[0] ) >> stamp_int;
+
+      uint64 stamp_int = stol(row[0]);
+      //std::istringstream ( row[0] ) >> stamp_int;
+      //std::cout << stamp_int << std::endl;
       for(int i=0;i<3;i++){
         for(int j=0;j<4;j++){
           double d = boost::lexical_cast<double> (row[1+(4*i)+j]);
@@ -771,14 +832,61 @@ void ROSThread::SaveRosbag()
         }
       }
 
+      ros::Time t;
+      t.fromNSec(stamp_int);
       Eigen::Affine3d Tgt(T);
+      static Eigen::Affine3d Tinit = Tgt;
+      Tgt = Tinit.inverse()*Tgt; // Start at Zero \in SE(3)
       //std::cout<<Tgt.matrix()<<std::endl;
-      tf::poseEigenToMsg(Tgt,Tgt_msg.pose.pose);
-      Tgt_msg.header.stamp.fromNSec(stamp_int);
+
+
+      //Store odometry messages
+      Tgt_msg.header.stamp = t;
+      tf::poseEigenToMsg(Tgt, Tgt_msg.pose.pose);
       bag.write("/gt", Tgt_msg.header.stamp, Tgt_msg);
-      //cout<<"Written: "<<count++<<" /gt nav_msgs/odometry poses to /gt"<<endl;
+
+      const Eigen::Affine3d Tgt_lidar = Tgt*Tbase2lidar;
+      tf::poseEigenToMsg(Tgt_lidar, Tgt_msg.pose.pose);
+      bag.write("/gt_lidar", Tgt_msg.header.stamp, Tgt_msg);
+
+      const Eigen::Affine3d Tgt_radar = Tgt*Tbase2radar;
+      tf::poseEigenToMsg(Tgt_radar, Tgt_msg.pose.pose);
+      bag.write("/gt_radar", Tgt_msg.header.stamp, Tgt_msg);
+
+      // Store TF's
+      geometry_msgs::TransformStamped tf_world_base = EigToGeomStamped(Tgt, t, "/world", "/base_link");
+      geometry_msgs::TransformStamped tf_base_lidar = EigToGeomStamped(Tbase2lidar, t, "/base_link", "/ouster");
+      geometry_msgs::TransformStamped tf_base_radar = EigToGeomStamped(Tbase2radar, t, "/base_link", "/radar_polar");
+      tf::tfMessage tfmsg;
+      tfmsg.transforms = {tf_world_base, tf_base_lidar, tf_base_radar};
+      bag.write("/tf", t, tfmsg);
+
     }
   }
+}
+void
+ROSThread::SaveRosbag()
+{
+  // General initialization
+  rosbag::Bag bag;
+  const std::string bag_path = data_folder_path_+"/output.bag";
+  bag.open(data_folder_path_+"/output.bag", rosbag::bagmode::Write);
+  cout<<"Storing bag to: "<<bag_path<<endl;
+
+  SaveOuster(bag);
+  SaveRadar(bag);
+  SaveGT(bag);
+
+
+  //End
   cout<<"rosbag stored at: "<<bag_path<<endl;
   bag.close();
+}
+
+Eigen::Affine3d ROSThread::vectorToAffine3d(const std::vector<double>& v) {
+
+  return Eigen::Translation<double, 3>(v[0], v[1], v[2]) *
+      Eigen::AngleAxis<double>(v[3], Eigen::Vector3d::UnitX()) *
+      Eigen::AngleAxis<double>(v[4], Eigen::Vector3d::UnitY()) *
+      Eigen::AngleAxis<double>(v[5], Eigen::Vector3d::UnitZ());
 }

@@ -83,7 +83,10 @@
 #include "tf2/LinearMath/Transform.h"
 #include "csetjmp"
 #include "eigen_conversions/eigen_msg.h"
-
+#include "tf/transform_broadcaster.h"
+#include "tf/tfMessage.h"
+#include "eigen_conversions/eigen_msg.h"
+#include "tf_conversions/tf_eigen.h"
 using namespace std;
 using namespace cv;
 
@@ -116,7 +119,15 @@ public:
 
     int imu_data_version_;
 
+    Eigen::Affine3d Tbase2lidar, Tbase2radar;
+
+    // ---- ROSBAG RELATED METHODS ---- //
     void SaveRosbag();
+    void SaveOuster(rosbag::Bag &bag);
+    void SaveRadar(rosbag::Bag &bag);
+    void SaveGT(rosbag::Bag &bag);
+    geometry_msgs::TransformStamped EigToGeomStamped(const Eigen::Affine3d& T, const ros::Time& t, const std::string& parent, const std::string& child);
+
     void Ready();
     void ResetProcessStamp(int position);
 
@@ -164,6 +175,8 @@ private:
     void ImuThread();
     void OusterThread(); // giseop
     void RadarpolarThread(); 
+
+    Eigen::Affine3d vectorToAffine3d(const std::vector<double>& v);
 
     void FilePlayerStart(const std_msgs::BoolConstPtr& msg);
     void FilePlayerStop(const std_msgs::BoolConstPtr& msg);
