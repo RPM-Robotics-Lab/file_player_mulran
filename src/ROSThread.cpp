@@ -2,6 +2,8 @@
 
 #include "ROSThread.h"
 
+#include <regex>
+
 using namespace std;
 
 struct PointXYZIRT {
@@ -116,7 +118,7 @@ ROSThread::Ready()
   if(radarpolar_thread_.thread_.joinable()) radarpolar_thread_.thread_.join();
 
   //check path is right or not
-  ifstream f((data_folder_path_+"/sensor_data/data_stamp.csv").c_str());
+  ifstream f((data_folder_path_+"/data_stamp.csv").c_str());
   if(!f.good()){
     cout << "Please check the file path. The input path is wrong (data_stamp.csv not exist)" << endl;
     return;
@@ -130,7 +132,7 @@ ROSThread::Ready()
   int64_t stamp;
 
   //data stamp data load
-  fp = fopen((data_folder_path_+"/sensor_data/data_stamp.csv").c_str(),"r");
+  fp = fopen((data_folder_path_+"/data_stamp.csv").c_str(),"r");
   char data_name[50];
   data_stamp_.clear();
   while(fscanf(fp,"%ld,%s\n",&stamp,data_name) == 2){
@@ -144,7 +146,7 @@ ROSThread::Ready()
 
 
   //Read gps data
-  fp = fopen((data_folder_path_+"/sensor_data/gps.csv").c_str(),"r");
+  fp = fopen((data_folder_path_+"/gps.csv").c_str(),"r");
   double latitude, longitude, altitude, altitude_orthometric;
   double cov[9];
   sensor_msgs::NavSatFix gps_data;
@@ -169,7 +171,7 @@ ROSThread::Ready()
   //Read IMU data
   if(imu_active_)
   {
-    fp = fopen((data_folder_path_+"/sensor_data/xsens_imu.csv").c_str(),"r");
+    fp = fopen((data_folder_path_+"/xsens_imu.csv").c_str(),"r");
     double q_x,q_y,q_z,q_w,x,y,z,g_x,g_y,g_z,a_x,a_y,a_z,m_x,m_y,m_z;
     // irp_sen_msgs::imu imu_data_origin;
     sensor_msgs::Imu imu_data;
@@ -267,8 +269,8 @@ ROSThread::Ready()
   ouster_file_list_.clear();
   radarpolar_file_list_.clear();
 
-  GetDirList(data_folder_path_ + "/sensor_data/Ouster", ouster_file_list_);
-  GetDirList(data_folder_path_ + "/sensor_data/radar/polar", radarpolar_file_list_);
+  GetDirList(data_folder_path_ + "/Ouster", ouster_file_list_);
+  GetDirList(data_folder_path_ + "/radar/polar", radarpolar_file_list_);
 
   data_stamp_thread_.active_ = true;
   gps_thread_.active_ = true;
@@ -498,7 +500,7 @@ ROSThread::OusterThread()
         pcl::PointCloud<PointXYZIRT> cloud;
         cloud.clear();
         sensor_msgs::PointCloud2 publish_cloud;
-        string current_file_name = data_folder_path_ + "/sensor_data/Ouster" +"/"+ to_string(data) + ".bin";
+        string current_file_name = data_folder_path_ + "/Ouster" +"/"+ to_string(data) + ".bin";
 
         if(find(next(ouster_file_list_.begin(),max(0,previous_file_index-search_bound_)),ouster_file_list_.end(),to_string(data)+".bin") != ouster_file_list_.end())
         {
@@ -532,7 +534,7 @@ ROSThread::OusterThread()
       sensor_msgs::PointCloud2 publish_cloud;
       current_file_index = find(next(ouster_file_list_.begin(),max(0,previous_file_index-search_bound_)),ouster_file_list_.end(),to_string(data)+".bin") - ouster_file_list_.begin();
       if(find(next(ouster_file_list_.begin(),max(0,previous_file_index-search_bound_)),ouster_file_list_.end(),ouster_file_list_[current_file_index+1]) != ouster_file_list_.end()){
-        string next_file_name = data_folder_path_ + "/sensor_data/Ouster" +"/"+ ouster_file_list_[current_file_index+1];
+        string next_file_name = data_folder_path_ + "/Ouster" +"/"+ ouster_file_list_[current_file_index+1];
 
         ifstream file;
         file.open(next_file_name, ios::in|ios::binary);
@@ -590,7 +592,7 @@ ROSThread::RadarpolarThread()
       }
       else
       {
-        string current_radarpolar_name = data_folder_path_ + "/sensor_data/radar/polar" + "/" + to_string(data) + ".png";
+        string current_radarpolar_name = data_folder_path_ + "/radar/polar" + "/" + to_string(data) + ".png";
 
         cv::Mat radarpolar_image;
         radarpolar_image = imread(current_radarpolar_name, CV_LOAD_IMAGE_GRAYSCALE);
@@ -709,76 +711,239 @@ void ROSThread::SaveRosbag()
   cout<<"Storing bag to: "<<bag_path<<endl;
 
 
-  GetDirList(data_folder_path_ + "/sensor_data/radar/polar", radarpolar_file_list_);
+  // cout<<"Found: "<<radarpolar_file_list_.size()<<" radar sweeps"<<endl;
+  // int count = 1;
+  // for(auto && file_name : radarpolar_file_list_){
 
-  int current_img_index = 0;
-  int previous_img_index = 0;
+  //   cv::Mat radarpolar_image;
+  //   const std::string file_path = data_folder_path_ + "/radar/polar/" + file_name;
+  //   cout<<"radar: "<<count++<<"/"<<radarpolar_file_list_.size()<<endl;
+  //   //cout<<"load ("<<count++<<"/"<<radarpolar_file_list_.size()<<") from: "<<file_path<<endl;
+  //   radarpolar_image = imread(file_path, 0);
 
+  //   size_t lastindex = file_name.find_last_of(".");
+  //   std::string stamp_str = file_name.substr(0, lastindex);
+  //   int64_t  stamp_int;
+  //   std::istringstream ( stamp_str ) >> stamp_int;
 
-  cout<<"Found: "<<radarpolar_file_list_.size()<<" radar sweeps"<<endl;
-  int count = 1;
-  for(auto && file_name : radarpolar_file_list_){
+  //   cv_bridge::CvImage radarpolar_out_msg;
+  //   radarpolar_out_msg.header.stamp.fromNSec(stamp_int);
+  //   radarpolar_out_msg.header.frame_id = "radar_polar";
+  //   radarpolar_out_msg.encoding = sensor_msgs::image_encodings::MONO8;
+  //   radarpolar_out_msg.image    = radarpolar_image;
+  //   auto msg = radarpolar_out_msg.toImageMsg();
+  //   bag.write("/Navtech/Polar", msg->header.stamp, *msg);
+  // }
 
-    cv::Mat radarpolar_image;
-    const std::string file_path = data_folder_path_ + "/sensor_data/radar/polar/" + file_name;
-    cout<<"radar: "<<count++<<"/"<<radarpolar_file_list_.size()<<endl;
-    //cout<<"load ("<<count++<<"/"<<radarpolar_file_list_.size()<<") from: "<<file_path<<endl;
-    radarpolar_image = imread(file_path, 0);
+  //////////////////// Point Cloud Save Bag ///////////////////////
+  int ouster_counter = 1; 
+  for (int i = 0; i < ouster_file_list_.size(); i++){
+    std::cout << ouster_file_list_.at(i) << std::endl;
+  } 
+  
+  for (auto && file_name : ouster_file_list_){
 
-    size_t lastindex = file_name.find_last_of(".");
-    std::string stamp_str = file_name.substr(0, lastindex);
-    int64_t  stamp_int;
-    std::istringstream ( stamp_str ) >> stamp_int;
+    std::cout << "File Name: " << file_name << std::endl;
+    std::cout << ouster_counter++ << "/" << ouster_file_list_.size() << std::endl;
+    ifstream input(data_folder_path_ + "/Ouster/" + file_name,ios::binary);
 
-    cv_bridge::CvImage radarpolar_out_msg;
-    radarpolar_out_msg.header.stamp.fromNSec(stamp_int);
-    radarpolar_out_msg.header.frame_id = "radar_polar";
-    radarpolar_out_msg.encoding = sensor_msgs::image_encodings::MONO8;
-    radarpolar_out_msg.image    = radarpolar_image;
-    auto msg = radarpolar_out_msg.toImageMsg();
-    bag.write("/Navtech/Polar", msg->header.stamp, *msg);
+    if(!input.is_open()){
+      std::cerr << "Could not read file." << std::endl;
+      break;
+    }
+
+    pcl::PointCloud<PointXYZIRT> points;
+    const size_t kMaxNumberOfPoints = 1e6;
+
+    
+    points.reserve(kMaxNumberOfPoints);
+
+    for ( int i = 0; input.is_open() && !input.eof(); i++){
+      PointXYZIRT point;
+
+      input.read((char *)&point.x, sizeof(float));
+      input.read((char *)&point.y, sizeof(float));
+      input.read((char *)&point.z, sizeof(float));
+      input.read((char *)&point.intensity, sizeof(float));
+
+      points.push_back(point);
+    }
+  input.close();
+
+  size_t lastindex = file_name.find_last_of(".");
+  std::string stamp_str = file_name.substr(0, lastindex);
+  int64_t  stamp_int;
+  std::istringstream ( stamp_str ) >> stamp_int;
+
+  sensor_msgs::PointCloud2 output;
+  pcl::toROSMsg(points, output);
+  output.header.frame_id = "base_link";
+  output.header.stamp.fromNSec(stamp_int);
+  bag.write("mulran/velo/pointclouds", output.header.stamp, output);
+
   }
+  ////////////////////// OPEN GPS FILE //////////////////////////
+  std::ifstream gps_file(data_folder_path_ + "/gps.csv");
+
+  if(!gps_file.is_open()){
+    std::cout << "Could not open file!" << std::endl;
+  }
+
+  std::string line;
+  std::getline(gps_file,line);
+  if(gps_file.is_open()){
+  while(std::getline(gps_file, line)){
+
+    std::stringstream ss(line);
+    std::string field;
+    std::vector<std::string> fields;
+
+    while(std::getline(ss, field, ',')){
+      fields.push_back(field);
+    }
+    
+    sensor_msgs::NavSatFix msg;
+    int64_t stamp_int_gps;
+    std::string stamp_str = fields[0];
+    std::istringstream (stamp_str) >> stamp_int_gps;
+    msg.header.stamp.fromNSec(stamp_int_gps);
+    msg.header.frame_id = "base_link";
+
+    std::istringstream (fields[1]) >> msg.latitude;
+    std::istringstream (fields[2]) >> msg.longitude;
+    std::istringstream (fields[3]) >> msg.altitude;
+    std::istringstream (fields[4]) >> msg.position_covariance[0];
+    std::istringstream (fields[5]) >> msg.position_covariance[1];
+    std::istringstream (fields[6]) >> msg.position_covariance[2];
+    std::istringstream (fields[7]) >> msg.position_covariance[3];
+    std::istringstream (fields[8]) >> msg.position_covariance[4];
+    std::istringstream (fields[9]) >> msg.position_covariance[5];
+    std::istringstream (fields[10]) >> msg.position_covariance[6];
+    std::istringstream (fields[11]) >> msg.position_covariance[7];
+    std::istringstream (fields[12]) >> msg.position_covariance[8];
+
+
+    bag.write("mulran/gps/fix", msg.header.stamp, msg);
+
+
+  }
+
+  gps_file.close();
+
+  }
+
+  /////////////////////// IMU ///////////////////////////////////////
+
+
+  std::ifstream imuFile(data_folder_path_ + "/xsens_imu.csv");
+
+  if(!imuFile.is_open()){
+    std::cout << "File could not open." << std::endl;
+  }
+  std::string line_imu;
+  std::getline(imuFile,line);
+  if(imuFile.is_open()){
+  while(std::getline(imuFile, line)){
+
+    std::stringstream ss(line);
+    std::string field;
+    std::vector<std::string> fields;
+
+    while(std::getline(ss, field, ',')){
+      fields.push_back(field);
+    }
+    
+    sensor_msgs::Imu msg_imu;
+    sensor_msgs::MagneticField msg_mag;
+    int64_t stamp_int_imu;
+    std::string stamp_str = fields[0];
+    std::istringstream (stamp_str) >> stamp_int_imu;
+    msg_imu.header.stamp.fromNSec(stamp_int_imu);
+    msg_imu.header.frame_id = "base_link";
+
+    std::istringstream (fields[1]) >> msg_imu.orientation.x;
+    std::istringstream (fields[2]) >> msg_imu.orientation.y;
+    std::istringstream (fields[3]) >> msg_imu.orientation.z;
+    std::istringstream (fields[4]) >> msg_imu.orientation.w;
+
+    std::istringstream (fields[8]) >> msg_imu.angular_velocity.x;
+    std::istringstream (fields[9]) >> msg_imu.angular_velocity.y;
+    std::istringstream (fields[10]) >> msg_imu.angular_velocity.z;
+
+    std::istringstream (fields[11]) >> msg_imu.linear_acceleration.x;
+    std::istringstream (fields[12]) >> msg_imu.linear_acceleration.y;
+    std::istringstream (fields[13]) >> msg_imu.linear_acceleration.z;
+
+    msg_imu.orientation_covariance[0] = 3;
+    msg_imu.orientation_covariance[4] = 3;
+    msg_imu.orientation_covariance[8] = 3;
+    msg_imu.angular_velocity_covariance[0] = 3;
+    msg_imu.angular_velocity_covariance[4] = 3;
+    msg_imu.angular_velocity_covariance[8] = 3;
+    msg_imu.linear_acceleration_covariance[0] = 3;
+    msg_imu.linear_acceleration_covariance[4] = 3;
+    msg_imu.linear_acceleration_covariance[8] = 3;
+
+    std::istringstream (fields[14]) >> msg_mag.magnetic_field.x;
+    std::istringstream (fields[15]) >> msg_mag.magnetic_field.y;
+    std::istringstream (fields[16]) >> msg_mag.magnetic_field.z;
+
+    bag.write("mulran/imu", msg_imu.header.stamp, msg_imu);
+
+
+  }
+
+  imuFile.close();
+
+  }
+
+
+
   ////////////////////// OPEN GROUND TRUTH FILE /////////////////////
 
-  const std::string gt_csv_path = data_folder_path_+ std::string("/global_pose.csv");
-  fstream fin;
-  fin.open(gt_csv_path, ios::in);
-  if(fin.is_open()){
-    cout<<"loaded: "<<gt_csv_path<<endl;
+//   const std::string gt_csv_path = data_folder_path_+ std::string("/global_pose.csv");
+//   fstream fin;
+//   fin.open(gt_csv_path, ios::in);
+//   if(fin.is_open()){
+//     cout<<"loaded: "<<gt_csv_path<<endl;
 
-    std::string temp;
-    int count  = 0;
-    nav_msgs::Odometry Tgt_msg;
-    Tgt_msg.header.frame_id = "world";
-    while (fin >> temp) {
-      Eigen::Matrix<double,4,4> T = Eigen::Matrix<double,4,4>::Zero();
-      T(3,3) = 1.0;
+//     std::string temp;
+//     int count  = 0;
+//     nav_msgs::Odometry Tgt_msg;
+//     Tgt_msg.header.frame_id = "world";
+//     while (fin >> temp) {
+//       Eigen::Matrix<double,4,4> T = Eigen::Matrix<double,4,4>::Zero();
+//       T(3,3) = 1.0;
 
-      std::vector<string> row;
+//       std::vector<string> row;
 
-      stringstream  ss(temp);
-      std::string str;
-      while (getline(ss, str, ','))
-        row.push_back(str);
-      if(row.size()!=13)
-        break;
-      int64_t stamp_int;
-      std::istringstream ( row[0] ) >> stamp_int;
-      for(int i=0;i<3;i++){
-        for(int j=0;j<4;j++){
-          double d = boost::lexical_cast<double> (row[1+(4*i)+j]);
-          T(i,j) = d;
-        }
-      }
+//       stringstream  ss(temp);
+//       std::string str;
+//       while (getline(ss, str, ','))
+//         row.push_back(str);
+//       if(row.size()!=13)
+//         break;
+//       int64_t stamp_int;
 
-      Eigen::Affine3d Tgt(T);
-      //std::cout<<Tgt.matrix()<<std::endl;
-      tf::poseEigenToMsg(Tgt,Tgt_msg.pose.pose);
-      Tgt_msg.header.stamp.fromNSec(stamp_int);
-      bag.write("/gt", Tgt_msg.header.stamp, Tgt_msg);
-      //cout<<"Written: "<<count++<<" /gt nav_msgs/odometry poses to /gt"<<endl;
-    }
-  }
+//       std::istringstream ( row[0] ) >> stamp_int;
+
+      
+//       for(int i=0;i<3;i++){
+//         for(int j=0;j<4;j++){
+//           double d = boost::lexical_cast<double> (row[1+(4*i)+j]);
+//           T(i,j) = d;
+//         }
+//       }
+
+//       Eigen::Affine3d Tgt(T);
+//       //std::cout<<Tgt.matrix()<<std::endl;
+//       tf::poseEigenToMsg(Tgt,Tgt_msg.pose.pose);
+//       Tgt_msg.header.stamp.fromNSec(stamp_int);
+//       bag.write("/gt", Tgt_msg.header.stamp, Tgt_msg);
+//       //cout<<"Written: "<<count++<<" /gt nav_msgs/odometry poses to /gt"<<endl;
+//       count++;
+//     }
+//   }
   cout<<"rosbag stored at: "<<bag_path<<endl;
   bag.close();
 }

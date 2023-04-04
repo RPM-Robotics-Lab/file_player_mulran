@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/berkay/catkin_ws/src/file_player_mulran/build/devel/setup.sh

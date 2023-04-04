@@ -1,0 +1,525 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"_install",
+			"install",
+			"catkin_generate_environment",
+			"include",
+			"find_package",
+			"catkin_install_python",
+			"generate_messages",
+			"generate_dynamic_reconfigure_options",
+			"dynreconf_called",
+			"_catkin_package",
+			"catkin_package"
+		],
+		"files" : 
+		[
+			"/opt/ros/melodic/share/catkin/cmake/custom_install.cmake",
+			"/opt/ros/melodic/share/catkin/cmake/catkin_generate_environment.cmake",
+			"/opt/ros/melodic/share/catkin/cmake/all.cmake",
+			"/opt/ros/melodic/share/catkin/cmake/catkinConfig.cmake",
+			"CMakeLists.txt",
+			"/opt/ros/melodic/share/catkin/cmake/catkin_install_python.cmake",
+			"/opt/ros/melodic/share/genmsg/cmake/genmsg-extras.cmake",
+			"build/cmake/file_player-genmsg.cmake",
+			"/opt/ros/melodic/share/dynamic_reconfigure/cmake/dynamic_reconfigure-macros.cmake",
+			"/opt/ros/melodic/share/catkin/cmake/catkin_package.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 4
+			},
+			{
+				"command" : 4,
+				"file" : 4,
+				"line" : 10,
+				"parent" : 0
+			},
+			{
+				"file" : 3,
+				"parent" : 1
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 20,
+				"parent" : 2
+			},
+			{
+				"file" : 2,
+				"parent" : 3
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 190,
+				"parent" : 4
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 85,
+				"parent" : 5
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 6
+			},
+			{
+				"command" : 5,
+				"file" : 1,
+				"line" : 97,
+				"parent" : 5
+			},
+			{
+				"command" : 1,
+				"file" : 5,
+				"line" : 59,
+				"parent" : 8
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 9
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 115,
+				"parent" : 5
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 11
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 128,
+				"parent" : 5
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 13
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 128,
+				"parent" : 5
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 15
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 128,
+				"parent" : 5
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 17
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 140,
+				"parent" : 5
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 19
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 44,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 6,
+				"line" : 228,
+				"parent" : 21
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 22
+			},
+			{
+				"command" : 3,
+				"file" : 6,
+				"line" : 307,
+				"parent" : 21
+			},
+			{
+				"file" : 7,
+				"parent" : 24
+			},
+			{
+				"command" : 1,
+				"file" : 7,
+				"line" : 169,
+				"parent" : 25
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 26
+			},
+			{
+				"command" : 1,
+				"file" : 7,
+				"line" : 210,
+				"parent" : 25
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 28
+			},
+			{
+				"command" : 1,
+				"file" : 7,
+				"line" : 212,
+				"parent" : 25
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 30
+			},
+			{
+				"command" : 7,
+				"file" : 4,
+				"line" : 50,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 8,
+				"line" : 79,
+				"parent" : 32
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 33
+			},
+			{
+				"command" : 8,
+				"file" : 8,
+				"line" : 89,
+				"parent" : 32
+			},
+			{
+				"command" : 1,
+				"file" : 8,
+				"line" : 108,
+				"parent" : 35
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 36
+			},
+			{
+				"command" : 1,
+				"file" : 8,
+				"line" : 129,
+				"parent" : 35
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 38
+			},
+			{
+				"command" : 1,
+				"file" : 8,
+				"line" : 130,
+				"parent" : 35
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 40
+			},
+			{
+				"command" : 10,
+				"file" : 4,
+				"line" : 55,
+				"parent" : 0
+			},
+			{
+				"command" : 9,
+				"file" : 9,
+				"line" : 102,
+				"parent" : 42
+			},
+			{
+				"command" : 1,
+				"file" : 9,
+				"line" : 450,
+				"parent" : 43
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 44
+			},
+			{
+				"command" : 1,
+				"file" : 9,
+				"line" : 496,
+				"parent" : 43
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 46
+			},
+			{
+				"command" : 1,
+				"file" : 9,
+				"line" : 521,
+				"parent" : 43
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 48
+			},
+			{
+				"command" : 1,
+				"file" : 9,
+				"line" : 529,
+				"parent" : 43
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 50
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 7,
+			"component" : "Unspecified",
+			"type" : "code"
+		},
+		{
+			"backtrace" : 10,
+			"component" : "Unspecified",
+			"destination" : "/usr/local",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/_setup_util.py"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 12,
+			"component" : "Unspecified",
+			"destination" : "/usr/local",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/env.sh"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 14,
+			"component" : "Unspecified",
+			"destination" : "/usr/local",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/setup.bash",
+				"build/catkin_generated/installspace/local_setup.bash"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 16,
+			"component" : "Unspecified",
+			"destination" : "/usr/local",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/setup.sh",
+				"build/catkin_generated/installspace/local_setup.sh"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 18,
+			"component" : "Unspecified",
+			"destination" : "/usr/local",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/setup.zsh",
+				"build/catkin_generated/installspace/local_setup.zsh"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 20,
+			"component" : "Unspecified",
+			"destination" : "/usr/local",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/.rosinstall"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 23,
+			"component" : "Unspecified",
+			"destination" : "share/file_player/cmake",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/file_player-msg-paths.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 27,
+			"component" : "Unspecified",
+			"destination" : "share/roseus/ros",
+			"paths" : 
+			[
+				"build/devel/share/roseus/ros/file_player"
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 29,
+			"component" : "Unspecified",
+			"type" : "code"
+		},
+		{
+			"backtrace" : 31,
+			"component" : "Unspecified",
+			"destination" : "lib/python2.7/dist-packages",
+			"paths" : 
+			[
+				"build/devel/lib/python2.7/dist-packages/file_player"
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 34,
+			"component" : "Unspecified",
+			"destination" : "include/file_player",
+			"paths" : 
+			[
+				"build/devel/include/file_player/file_playerConfig.h"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 37,
+			"component" : "Unspecified",
+			"destination" : "lib/python2.7/dist-packages/file_player",
+			"paths" : 
+			[
+				"build/devel/lib/python2.7/dist-packages/file_player/__init__.py"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 39,
+			"component" : "Unspecified",
+			"type" : "code"
+		},
+		{
+			"backtrace" : 41,
+			"component" : "Unspecified",
+			"destination" : "lib/python2.7/dist-packages/file_player",
+			"paths" : 
+			[
+				"build/devel/lib/python2.7/dist-packages/file_player/cfg"
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 45,
+			"component" : "Unspecified",
+			"destination" : "lib/pkgconfig",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/file_player.pc"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 47,
+			"component" : "Unspecified",
+			"destination" : "share/file_player/cmake",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/file_player-msg-extras.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 49,
+			"component" : "Unspecified",
+			"destination" : "share/file_player/cmake",
+			"paths" : 
+			[
+				"build/catkin_generated/installspace/file_playerConfig.cmake",
+				"build/catkin_generated/installspace/file_playerConfig-version.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 51,
+			"component" : "Unspecified",
+			"destination" : "share/file_player",
+			"paths" : 
+			[
+				"package.xml"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	}
+}
