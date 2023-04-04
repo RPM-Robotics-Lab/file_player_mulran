@@ -711,29 +711,29 @@ void ROSThread::SaveRosbag()
   cout<<"Storing bag to: "<<bag_path<<endl;
 
 
-  // cout<<"Found: "<<radarpolar_file_list_.size()<<" radar sweeps"<<endl;
-  // int count = 1;
-  // for(auto && file_name : radarpolar_file_list_){
+  cout<<"Found: "<<radarpolar_file_list_.size()<<" radar sweeps"<<endl;
+  int count = 1;
+  for(auto && file_name : radarpolar_file_list_){
 
-  //   cv::Mat radarpolar_image;
-  //   const std::string file_path = data_folder_path_ + "/radar/polar/" + file_name;
-  //   cout<<"radar: "<<count++<<"/"<<radarpolar_file_list_.size()<<endl;
-  //   //cout<<"load ("<<count++<<"/"<<radarpolar_file_list_.size()<<") from: "<<file_path<<endl;
-  //   radarpolar_image = imread(file_path, 0);
+    cv::Mat radarpolar_image;
+    const std::string file_path = data_folder_path_ + "/radar/polar/" + file_name;
+    cout<<"radar: "<<count++<<"/"<<radarpolar_file_list_.size()<<endl;
+    //cout<<"load ("<<count++<<"/"<<radarpolar_file_list_.size()<<") from: "<<file_path<<endl;
+    radarpolar_image = imread(file_path, 0);
 
-  //   size_t lastindex = file_name.find_last_of(".");
-  //   std::string stamp_str = file_name.substr(0, lastindex);
-  //   int64_t  stamp_int;
-  //   std::istringstream ( stamp_str ) >> stamp_int;
+    size_t lastindex = file_name.find_last_of(".");
+    std::string stamp_str = file_name.substr(0, lastindex);
+    int64_t  stamp_int;
+    std::istringstream ( stamp_str ) >> stamp_int;
 
-  //   cv_bridge::CvImage radarpolar_out_msg;
-  //   radarpolar_out_msg.header.stamp.fromNSec(stamp_int);
-  //   radarpolar_out_msg.header.frame_id = "radar_polar";
-  //   radarpolar_out_msg.encoding = sensor_msgs::image_encodings::MONO8;
-  //   radarpolar_out_msg.image    = radarpolar_image;
-  //   auto msg = radarpolar_out_msg.toImageMsg();
-  //   bag.write("/Navtech/Polar", msg->header.stamp, *msg);
-  // }
+    cv_bridge::CvImage radarpolar_out_msg;
+    radarpolar_out_msg.header.stamp.fromNSec(stamp_int);
+    radarpolar_out_msg.header.frame_id = "radar_polar";
+    radarpolar_out_msg.encoding = sensor_msgs::image_encodings::MONO8;
+    radarpolar_out_msg.image    = radarpolar_image;
+    auto msg = radarpolar_out_msg.toImageMsg();
+    bag.write("/Navtech/Polar", msg->header.stamp, *msg);
+  }
 
   //////////////////// Point Cloud Save Bag ///////////////////////
   int ouster_counter = 1; 
@@ -901,49 +901,49 @@ void ROSThread::SaveRosbag()
 
   ////////////////////// OPEN GROUND TRUTH FILE /////////////////////
 
-//   const std::string gt_csv_path = data_folder_path_+ std::string("/global_pose.csv");
-//   fstream fin;
-//   fin.open(gt_csv_path, ios::in);
-//   if(fin.is_open()){
-//     cout<<"loaded: "<<gt_csv_path<<endl;
+  const std::string gt_csv_path = data_folder_path_+ std::string("/global_pose.csv");
+  fstream fin;
+  fin.open(gt_csv_path, ios::in);
+  if(fin.is_open()){
+    cout<<"loaded: "<<gt_csv_path<<endl;
 
-//     std::string temp;
-//     int count  = 0;
-//     nav_msgs::Odometry Tgt_msg;
-//     Tgt_msg.header.frame_id = "world";
-//     while (fin >> temp) {
-//       Eigen::Matrix<double,4,4> T = Eigen::Matrix<double,4,4>::Zero();
-//       T(3,3) = 1.0;
+    std::string temp;
+    int count  = 0;
+    nav_msgs::Odometry Tgt_msg;
+    Tgt_msg.header.frame_id = "world";
+    while (fin >> temp) {
+      Eigen::Matrix<double,4,4> T = Eigen::Matrix<double,4,4>::Zero();
+      T(3,3) = 1.0;
 
-//       std::vector<string> row;
+      std::vector<string> row;
 
-//       stringstream  ss(temp);
-//       std::string str;
-//       while (getline(ss, str, ','))
-//         row.push_back(str);
-//       if(row.size()!=13)
-//         break;
-//       int64_t stamp_int;
+      stringstream  ss(temp);
+      std::string str;
+      while (getline(ss, str, ','))
+        row.push_back(str);
+      if(row.size()!=13)
+        break;
+      int64_t stamp_int;
 
-//       std::istringstream ( row[0] ) >> stamp_int;
+      std::istringstream ( row[0] ) >> stamp_int;
 
       
-//       for(int i=0;i<3;i++){
-//         for(int j=0;j<4;j++){
-//           double d = boost::lexical_cast<double> (row[1+(4*i)+j]);
-//           T(i,j) = d;
-//         }
-//       }
+      for(int i=0;i<3;i++){
+        for(int j=0;j<4;j++){
+          double d = boost::lexical_cast<double> (row[1+(4*i)+j]);
+          T(i,j) = d;
+        }
+      }
 
-//       Eigen::Affine3d Tgt(T);
-//       //std::cout<<Tgt.matrix()<<std::endl;
-//       tf::poseEigenToMsg(Tgt,Tgt_msg.pose.pose);
-//       Tgt_msg.header.stamp.fromNSec(stamp_int);
-//       bag.write("/gt", Tgt_msg.header.stamp, Tgt_msg);
-//       //cout<<"Written: "<<count++<<" /gt nav_msgs/odometry poses to /gt"<<endl;
-//       count++;
-//     }
-//   }
+      Eigen::Affine3d Tgt(T);
+      //std::cout<<Tgt.matrix()<<std::endl;
+      tf::poseEigenToMsg(Tgt,Tgt_msg.pose.pose);
+      Tgt_msg.header.stamp.fromNSec(stamp_int);
+      bag.write("/gt", Tgt_msg.header.stamp, Tgt_msg);
+      //cout<<"Written: "<<count++<<" /gt nav_msgs/odometry poses to /gt"<<endl;
+      count++;
+    }
+  }
   cout<<"rosbag stored at: "<<bag_path<<endl;
   bag.close();
 }
