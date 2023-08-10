@@ -18,11 +18,19 @@ This program is a file player for the [MulRan dataset](https://sites.google.com/
   - The model specification and the extrinsic calibration (i.e., the sensor position within our car platform) is equivalent to our lab's other dataset ([Complex Urban Dataset, IJRR 19](https://irap.kaist.ac.kr/dataset/)), so please refer the paper. 
 - We expect these data supports [GPS-aided radar researches](https://arxiv.org/pdf/2006.02108.pdf), LiDAR-IMU fusion such as [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) ([example video](https://youtu.be/Y6DXlC34qlc?t=479)), or radar-imu fusion.
 
+## How to install
+```
+$ mkdir -p catkin_ws/src
+$ cd catkin_ws/src
+$ git clone -b [master, noetic] https://github.com/irapkaist/file_player_mulran.git
+$ cd ../..
+$ catkin_make
+```
+- If ROS version is melodic, please use a master branch. Ohteriwse, if ROS version is noetic, please use a noetic branch.
+
 ## How to use 
 
 ```
-$ cd ~/catkin_ws
-$ catkin_make
 $ source devel/setup.bash
 $ roslaunch file_player file_player.launch
 ```
