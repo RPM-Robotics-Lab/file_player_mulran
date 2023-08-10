@@ -593,7 +593,7 @@ ROSThread::RadarpolarThread()
         string current_radarpolar_name = data_folder_path_ + "/sensor_data/radar/polar" + "/" + to_string(data) + ".png";
 
         cv::Mat radarpolar_image;
-        radarpolar_image = imread(current_radarpolar_name, IMREAD_GRAYSCALE);
+        radarpolar_image = imread(current_radarpolar_name, CV_LOAD_IMAGE_GRAYSCALE);
         if(!radarpolar_image.empty())
         {
 
@@ -615,7 +615,7 @@ ROSThread::RadarpolarThread()
         string next_radarpolar_name = data_folder_path_ + "/radar/polar" +"/"+ radarpolar_file_list_[current_img_index+1];
 
         cv::Mat radarpolar_image;
-        radarpolar_image = imread(next_radarpolar_name, IMREAD_COLOR);
+        radarpolar_image = imread(next_radarpolar_name, CV_LOAD_IMAGE_COLOR);
 
         if(!radarpolar_image.empty())
         {

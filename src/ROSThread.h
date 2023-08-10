@@ -17,7 +17,8 @@
 #include <algorithm>
 #include <ros/ros.h>
 #include <ros/time.h>
-#include <opencv2/opencv.hpp>
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <image_transport/image_transport.h>
