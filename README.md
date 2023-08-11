@@ -5,7 +5,9 @@ Maintainer: Giseop Kim (paulgkim@kaist.ac.kr)
 This program is a file player for the [MulRan dataset](https://sites.google.com/view/mulran-pr/home). 
 
 ## NEWS
-
+### Update (2023. 08. 11): ros noetic compatability 
+- We now support compiling in the ros noetic environment. Instructions for installing from noetic can be found in the section below. 
+  
 ### Update (2021. 08. 03): rosbag generation 
 - We now support to generate a rosbag from the files. This is a contribution from [Daniel Adolfsson](https://github.com/dan11003) and we are very grateful for his efforts (for the details: see [The pull requests from @dan11003](https://github.com/irapkaist/file_player_mulran/pull/7))
 - Use the 'Save bag' button. <p align="center"><img src="doc/file_player.png" width=500></p>
