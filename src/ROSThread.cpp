@@ -803,7 +803,7 @@ void ROSThread::SaveRosbag()
 
 	sensor_msgs::PointCloud2 ouster_cloud2;
 	pcl::toROSMsg(ouster_cloud, ouster_cloud2);
-	const std::uint64_t ouster_stamp = std::stoull(ouster_file.path().stem());
+	const std::int64_t ouster_stamp = std::stoull(ouster_file.path().stem());
 	ouster_cloud2.header.stamp.fromNSec(ouster_stamp);
 	ouster_cloud2.header.frame_id = "ouster";
 	bag.write("/os1_points", ouster_cloud2.header.stamp, ouster_cloud2);
