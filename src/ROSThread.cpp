@@ -1,4 +1,5 @@
 #include <QMutexLocker>
+#include <filesystem>
 
 #include "ROSThread.h"
 
@@ -778,6 +779,34 @@ void ROSThread::SaveRosbag()
       bag.write("/gt", Tgt_msg.header.stamp, Tgt_msg);
       //cout<<"Written: "<<count++<<" /gt nav_msgs/odometry poses to /gt"<<endl;
     }
+  }
+
+  // Ouster points
+  const std::filesystem::path ouster_path = std::filesystem::path(data_folder_path_) / "sensor_data" / "Ouster";
+  const auto ouster_file_iterator = std::filesystem::directory_iterator{ouster_path};
+  for (const auto& ouster_file: ouster_file_iterator) {
+	std::ifstream ouster_bin(ouster_file.path(), std::ios_base::binary);
+
+	int num_points = 0;
+	pcl::PointCloud<PointXYZIRT> ouster_cloud;
+	while (!ouster_bin.eof()) {
+		PointXYZIRT point;
+		ouster_bin.read(reinterpret_cast<char *>(&point.x), sizeof(float));
+		ouster_bin.read(reinterpret_cast<char *>(&point.y), sizeof(float));
+		ouster_bin.read(reinterpret_cast<char *>(&point.z), sizeof(float));
+		ouster_bin.read(reinterpret_cast<char *>(&point.intensity), sizeof(float));
+		point.ring = (num_points % 64) + 1;
+		num_points++;
+		ouster_cloud.points.emplace_back(point);
+	}
+	ouster_bin.close();
+
+	sensor_msgs::PointCloud2 ouster_cloud2;
+	pcl::toROSMsg(ouster_cloud, ouster_cloud2);
+	const std::uint64_t ouster_stamp = std::stoull(ouster_file.path().stem());
+	ouster_cloud2.header.stamp.fromNSec(ouster_stamp);
+	ouster_cloud2.header.frame_id = "ouster";
+	bag.write("/os1_points", ouster_cloud2.header.stamp, ouster_cloud2);
   }
 
   cout<<"rosbag stored at: "<<bag_path<<endl;
