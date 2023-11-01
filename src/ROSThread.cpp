@@ -784,6 +784,9 @@ void ROSThread::SaveRosbag()
   // Ouster points
   const std::filesystem::path ouster_path = std::filesystem::path(data_folder_path_) / "sensor_data" / "Ouster";
   const auto ouster_file_iterator = std::filesystem::directory_iterator{ouster_path};
+  const std::size_t num_ouster_bins = std::distance(std::filesystem::directory_iterator{ouster_path}, std::filesystem::directory_iterator{});
+  std::cout << "Found ouster bins: total " << num_ouster_bins << std::endl;
+  std::size_t num_processed_ouster = 0;
   for (const auto& ouster_file: ouster_file_iterator) {
 	std::ifstream ouster_bin(ouster_file.path(), std::ios_base::binary);
 
@@ -807,6 +810,7 @@ void ROSThread::SaveRosbag()
 	ouster_cloud2.header.stamp.fromNSec(ouster_stamp);
 	ouster_cloud2.header.frame_id = "ouster";
 	bag.write("/os1_points", ouster_cloud2.header.stamp, ouster_cloud2);
+	std::cout << "processing ouster: " << num_processed_ouster++ << "/" << num_ouster_bins << std::endl;
   }
 
   cout<<"rosbag stored at: "<<bag_path<<endl;
