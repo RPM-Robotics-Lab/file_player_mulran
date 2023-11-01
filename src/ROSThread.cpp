@@ -1,4 +1,5 @@
 #include <QMutexLocker>
+#include <filesystem>
 
 #include "ROSThread.h"
 
@@ -7,7 +8,7 @@ using namespace std;
 struct PointXYZIRT {
   PCL_ADD_POINT4D;
   float intensity;
-  uint32_t t;
+  std::uint32_t t;
   int ring;
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -15,7 +16,7 @@ struct PointXYZIRT {
 
 POINT_CLOUD_REGISTER_POINT_STRUCT (PointXYZIRT,
                                    (float, x, x) (float, y, y) (float, z, z) (float, intensity, intensity)
-                                   (uint32_t, t, t) (int, ring, ring)
+                                   (std::uint32_t, t, t) (int, ring, ring)
                                    )
 
 
@@ -593,7 +594,7 @@ ROSThread::RadarpolarThread()
         string current_radarpolar_name = data_folder_path_ + "/sensor_data/radar/polar" + "/" + to_string(data) + ".png";
 
         cv::Mat radarpolar_image;
-        radarpolar_image = imread(current_radarpolar_name, CV_LOAD_IMAGE_GRAYSCALE);
+        radarpolar_image = imread(current_radarpolar_name, cv::IMREAD_GRAYSCALE);
         if(!radarpolar_image.empty())
         {
 
@@ -615,7 +616,7 @@ ROSThread::RadarpolarThread()
         string next_radarpolar_name = data_folder_path_ + "/radar/polar" +"/"+ radarpolar_file_list_[current_img_index+1];
 
         cv::Mat radarpolar_image;
-        radarpolar_image = imread(next_radarpolar_name, CV_LOAD_IMAGE_COLOR);
+        radarpolar_image = imread(next_radarpolar_name, cv::IMREAD_COLOR);
 
         if(!radarpolar_image.empty())
         {
@@ -779,6 +780,39 @@ void ROSThread::SaveRosbag()
       //cout<<"Written: "<<count++<<" /gt nav_msgs/odometry poses to /gt"<<endl;
     }
   }
+
+  // Ouster points
+  const std::filesystem::path ouster_path = std::filesystem::path(data_folder_path_) / "sensor_data" / "Ouster";
+  const auto ouster_file_iterator = std::filesystem::directory_iterator{ouster_path};
+  const std::size_t num_ouster_bins = std::distance(std::filesystem::directory_iterator{ouster_path}, std::filesystem::directory_iterator{});
+  std::cout << "Found ouster bins: total " << num_ouster_bins << std::endl;
+  std::size_t num_processed_ouster = 0;
+  for (const auto& ouster_file: ouster_file_iterator) {
+	std::ifstream ouster_bin(ouster_file.path(), std::ios_base::binary);
+
+	int num_points = 0;
+	pcl::PointCloud<PointXYZIRT> ouster_cloud;
+	while (!ouster_bin.eof()) {
+		PointXYZIRT point;
+		ouster_bin.read(reinterpret_cast<char *>(&point.x), sizeof(float));
+		ouster_bin.read(reinterpret_cast<char *>(&point.y), sizeof(float));
+		ouster_bin.read(reinterpret_cast<char *>(&point.z), sizeof(float));
+		ouster_bin.read(reinterpret_cast<char *>(&point.intensity), sizeof(float));
+		point.ring = (num_points % 64) + 1;
+		num_points++;
+		ouster_cloud.points.emplace_back(point);
+	}
+	ouster_bin.close();
+
+	sensor_msgs::PointCloud2 ouster_cloud2;
+	pcl::toROSMsg(ouster_cloud, ouster_cloud2);
+	const std::int64_t ouster_stamp = std::stoull(ouster_file.path().stem());
+	ouster_cloud2.header.stamp.fromNSec(ouster_stamp);
+	ouster_cloud2.header.frame_id = "ouster";
+	bag.write("/os1_points", ouster_cloud2.header.stamp, ouster_cloud2);
+	std::cout << "processing ouster: " << num_processed_ouster++ << "/" << num_ouster_bins << std::endl;
+  }
+
   cout<<"rosbag stored at: "<<bag_path<<endl;
   bag.close();
 }
