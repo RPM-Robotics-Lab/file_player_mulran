@@ -11,13 +11,11 @@
 #include <QProcess>
 #include <QThread>
 #include "ROSThread.h"
-#include <std_srvs/SetBool.h>
 #include <QErrorMessage>
 #include <QCloseEvent>
 #include <QInputDialog>
 #include <signal.h>
 #include <algorithm>
-#include <rosbag/bag.h>
 #include <dirent.h>
 #include <ctime>
 #include <chrono>
@@ -46,7 +44,7 @@ public:
 
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
-  void RosInit(ros::NodeHandle &n);
+  void RosInit(rclcpp::Node::SharedPtr node);
 
 private slots:
   void TryClose();
