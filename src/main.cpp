@@ -1,22 +1,31 @@
-#include "mainwindow.h"
+#include <memory>
+
 #include <QApplication>
-//#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <GL/glu.h>
-//#include <GL/glut.h>
-#include <ros/ros.h>
-#include <QProcess>
+#include <QMetaObject>
+#include <rclcpp/rclcpp.hpp>
+
+#include "mainwindow.h"
 
 int main(int argc, char *argv[])
 {
-  ros::init(argc, argv, "file_player");
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
 
   QApplication a(argc, argv);
+
+  // Ctrl+C (or a shutdown from `ros2 launch`) reaches rclcpp first, so hand it
+  // over to Qt as well - otherwise the window would outlive the ROS context.
+  rclcpp::on_shutdown([]() {
+    if(qApp != nullptr){
+      QMetaObject::invokeMethod(qApp, [](){ QCoreApplication::quit(); }, Qt::QueuedConnection);
+    }
+  });
+
   MainWindow w;
-  w.RosInit(nh);
+  w.RosInit(std::make_shared<rclcpp::Node>("file_player"));
   w.show();
 
-   return a.exec();
+  const int exit_code = a.exec();
+
+  rclcpp::shutdown();
+  return exit_code;
 }

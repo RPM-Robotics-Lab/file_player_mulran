@@ -9,7 +9,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
   my_ros_ = new ROSThread(this, &mutex);
   ui_->setupUi(this);
-  my_ros_->start();
 
   slider_checker_ = false;
   play_flag_ = false;
@@ -63,6 +62,7 @@ MainWindow::~MainWindow()
 {
   emit setThreadFinished(true); //Tell the thread to finish
   delete ui_;
+  my_ros_->Shutdown(); //Stop the ROS executor so run() returns
   my_ros_->quit();
   if(!my_ros_->wait(500)) //Wait until it actually has terminated (max. 3 sec)
   {
@@ -72,9 +72,10 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::RosInit(ros::NodeHandle &n)
+void MainWindow::RosInit(rclcpp::Node::SharedPtr node)
 {
-  my_ros_->ros_initialize(n);
+  my_ros_->ros_initialize(node);
+  my_ros_->start(); //spin only once the node and its executor exist
 }
 
 
